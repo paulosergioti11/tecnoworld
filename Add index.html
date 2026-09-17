@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark selection:bg-blue-600 selection:text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECNOWORLD | Minimal Dark Workstation</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter, Rajdhani, Space Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#08090a',
+                            panel: '#101216',
+                            card: '#14171d',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            hoverBorder: 'rgba(59, 130, 246, 0.4)',
+                            accent: '#3b82f6',
+                            accentMuted: 'rgba(59, 130, 246, 0.15)',
+                            subtext: '#94a3b8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        tech: ['Rajdhani', 'sans-serif'],
+                        mono: ['"Space Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #08090a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+
+        body {
+            background-color: #08090a;
+            color: #cbd5e1;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% -20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Subtle Clean Glassmorphism */
+        .clean-glass {
+            background: rgba(16, 18, 22, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .clean-glass:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        /* macOS Dot Accent */
+        .mac-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        .mac-dot:hover { opacity: 1; }
+
+        /* Draggable Window */
+        .hud-draggable-window {
+            position: fixed;
+            touch-action: none;
+            user-select: none;
+            transition: box-shadow 0.2s ease;
+        }
+        .hud-draggable-window.is-active {
+            border-color: rgba(59, 130, 246, 0.5) !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            z-index: 100 !important;
+        }
+
+        /* Quick View Hover Overlay */
+        .mac-hover-card {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(6px);
+            transition: all 0.2s ease-in-out;
+        }
+        .product-card:hover .mac-hover-card {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Dock item animation */
+        .dock-item {
+            transition: all 0.2s ease;
+        }
+        .dock-item:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Toast animation */
+        @keyframes toastIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-animate {
+            animation: toastIn 0.25s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative text-slate-300">
+
+    <!-- Top Telemetry Bar -->
+    <div class="bg-dark-bg border-b border-dark-border py-2 px-4 sm:px-8 text-[11px] font-mono flex items-center justify-between text-slate-400 sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
+        <div class="flex items-center space-x-4">
+            <span class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span class="text-slate-200 font-semibold tracking-wide">TECNOWORLD OS v2.0</span>
+            </span>
+            <span class="hidden sm:inline text-slate-700">|</span>
+            <span class="hidden sm:inline text-slate-400"><i class="fa-solid fa-microchip mr-1.5 text-blue-500/70"></i>SYSTEM READY</span>
+        </div>
+        <div class="flex items-center space-x-5">
+            <button onclick="toggleAudio()" id="audioBtn" class="hover:text-slate-200 transition flex items-center gap-1.5 text-[10px] bg-dark-panel px-3 py-1 rounded-lg border border-dark-border">
+                <i class="fa-solid fa-volume-xmark text-slate-500" id="audioIcon"></i>
+                <span id="audioText" class="text-slate-400">AUDIO: OFF</span>
+            </button>
+            <span class="hidden sm:inline text-slate-700">|</span>
+            <span class="text-slate-400 font-mono" id="liveTime">00:00:00 UTC</span>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="z-40 clean-glass rounded-2xl mx-3 sm:mx-8 mt-3 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                
+                <!-- Brand & Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="filterCategory('all')">
+                    <div class="w-10 h-10 rounded-xl bg-dark-panel border border-dark-border flex items-center justify-center text-blue-500 hover:border-blue-500/50 transition">
+                        <i class="fa-solid fa-layer-group text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="font-tech text-xl sm:text-2xl font-bold tracking-wider text-slate-100 flex items-center gap-2">
+                            TECNO<span class="text-blue-500">WORLD</span>
+                        </span>
+                        <span class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest -mt-1">
+                            HARDWARE & TECH
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Minimal Command Search -->
+                <div class="hidden md:flex flex-1 max-w-sm mx-8 relative">
+                    <div class="relative w-full">
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Buscar produtos..." 
+                            class="w-full bg-dark-panel border border-dark-border rounded-xl py-2 pl-10 pr-10 text-xs text-slate-200 font-mono placeholder-slate-500 focus:outline-none focus:border-blue-500/60 transition">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                        <span class="absolute right-3 top-2.5 text-[9px] font-mono px-1.5 py-0.5 rounded bg-dark-bg border border-dark-border text-slate-500">⌘K</span>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="resetWindowPositions()" class="hidden sm:flex items-center space-x-1.5 text-xs font-mono px-3 py-2 rounded-xl bg-dark-panel text-slate-300 border border-dark-border hover:border-slate-600 transition">
+                        <i class="fa-solid fa-rotate-left text-slate-400"></i>
+                        <span>RESET</span>
+                    </button>
+
+                    <a href="https://wa.me/5511999999999?text=Olá!%20Gostaria%20de%20atendimento%20na%20TECNOWORLD" target="_blank" 
+                        class="hidden sm:flex items-center space-x-2 text-xs font-medium px-4 py-2 rounded-xl bg-dark-panel text-slate-200 border border-dark-border hover:border-blue-500/50 transition">
+                        <i class="fa-brands fa-whatsapp text-blue-500"></i>
+                        <span>SUPORTE</span>
+                    </a>
+
+                    <!-- Cart Trigger Button -->
+                    <button onclick="toggleCartWindow()" class="relative p-2.5 rounded-xl bg-dark-panel border border-dark-border hover:border-blue-500/50 text-slate-200 transition">
+                        <i class="fa-solid fa-bag-shopping text-base text-slate-300"></i>
+                        <span id="cartCount" class="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-mono font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search Input -->
+            <div class="md:hidden pb-3">
+                <div class="relative">
+                    <input type="text" id="mobileSearchInput" oninput="handleSearchMobile()" placeholder="Pesquisar..." 
+                        class="w-full bg-dark-panel border border-dark-border rounded-xl py-2 pl-9 pr-4 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/60">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-500 text-xs"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Minimal Floating Categories Dock -->
+    <div class="sticky top-16 sm:top-20 z-30 flex justify-center px-4 my-6">
+        <div class="clean-glass rounded-2xl p-1.5 flex items-center space-x-1 border border-dark-border shadow-xl overflow-x-auto no-scrollbar max-w-full">
+            <button onclick="filterCategory('all')" class="cat-btn active dock-item px-4 py-2 rounded-xl text-xs font-medium tracking-wide whitespace-nowrap bg-blue-600 text-white shadow-sm flex items-center space-x-2">
+                <i class="fa-solid fa-grid-2"></i> <span>TODOS</span>
+            </button>
+            <button onclick="filterCategory('smartphones')" class="cat-btn dock-item px-4 py-2 rounded-xl text-xs font-medium tracking-wide whitespace-nowrap text-slate-400 hover:text-slate-100 hover:bg-dark-panel transition flex items-center space-x-2">
+                <i class="fa-solid fa-mobile-screen text-slate-500"></i> <span>CELULARES</span>
+            </button>
+            <button onclick="filterCategory('smartwatches')" class="cat-btn dock-item px-4 py-2 rounded-xl text-xs font-medium tracking-wide whitespace-nowrap text-slate-400 hover:text-slate-100 hover:bg-dark-panel transition flex items-center space-x-2">
+                <i class="fa-solid fa-clock text-slate-500"></i> <span>RELÓGIOS</span>
+            </button>
+            <button onclick="filterCategory('cameras')" class="cat-btn dock-item px-4 py-2 rounded-xl text-xs font-medium tracking-wide whitespace-nowrap text-slate-400 hover:text-slate-100 hover:bg-dark-panel transition flex items-center space-x-2">
+                <i class="fa-solid fa-camera text-slate-500"></i> <span>CÂMERAS & DRONES</span>
+            </button>
+            <button onclick="filterCategory('audio')" class="cat-btn dock-item px-4 py-2 rounded-xl text-xs font-medium tracking-wide whitespace-nowrap text-slate-400 hover:text-slate-100 hover:bg-dark-panel transition flex items-center space-x-2">
+                <i class="fa-solid fa-headphones text-slate-500"></i> <span>ÁUDIO & VR</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 w-full">
+
+        <!-- Hero Panel -->
+        <section class="relative rounded-2xl overflow-hidden mb-10 clean-glass p-6 sm:p-10 border border-dark-border">
+            <div class="flex items-center justify-between border-b border-dark-border pb-3 mb-6 font-mono text-[11px] text-slate-500">
+                <div class="flex items-center space-x-2">
+                    <span class="mac-dot bg-zinc-600"></span>
+                    <span class="mac-dot bg-zinc-600"></span>
+                    <span class="mac-dot bg-zinc-600"></span>
+                    <span class="text-slate-400 ml-2 font-medium">stark_workstation.app</span>
+                </div>
+                <span class="hidden sm:inline">[ WORKSTATION MODE ]</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                <div class="lg:col-span-7">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-lg bg-dark-panel border border-dark-border text-slate-400 text-xs font-mono mb-4">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        <span>SÉRIE ESPECIAL 2026</span>
+                    </div>
+                    <h1 class="font-tech text-3xl sm:text-5xl lg:text-6xl font-bold text-slate-100 leading-tight mb-4 tracking-tight">
+                        TECNOLOGIA MINIMALISTA <br>
+                        <span class="text-blue-500">PERFORMANCE MÁXIMA.</span>
+                    </h1>
+                    <p class="text-slate-400 text-sm sm:text-base mb-6 leading-relaxed max-w-xl">
+                        Dispositivos de altíssimo desempenho com design fosco stealth. Utilize o cupom <strong class="text-slate-200 font-mono">TECNOWORLD10</strong> para 10% OFF.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="scrollToProducts()" class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs tracking-wider transition flex items-center gap-2">
+                            <span>VER CATÁLOGO</span> <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                        <div class="flex items-center space-x-2 text-xs font-mono text-slate-400 px-4 py-3 rounded-xl bg-dark-panel border border-dark-border">
+                            <i class="fa-solid fa-shield-check text-blue-500"></i>
+                            <span>GARANTIA DE 2 ANOS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Minimal Dark Canvas Arc Graphic -->
+                <div class="lg:col-span-5 flex flex-col items-center justify-center relative py-2">
+                    <div class="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center">
+                        <canvas id="arcCanvas" width="280" height="280" class="w-full h-full cursor-pointer" onclick="triggerArcPulse()" title="Clique para interagir"></canvas>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500 mt-2 uppercase tracking-widest text-center">
+                        CORE TELEMETRY
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Badges -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div class="clean-glass p-4 rounded-xl flex items-center space-x-3.5 border border-dark-border">
+                <div class="w-10 h-10 rounded-lg bg-dark-panel border border-dark-border flex items-center justify-center text-blue-500">
+                    <i class="fa-solid fa-truck-fast text-sm"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-200">Envio Expresso</h4>
+                    <p class="text-[11px] text-slate-500 font-mono">Entrega rápida e segura</p>
+                </div>
+            </div>
+
+            <div class="clean-glass p-4 rounded-xl flex items-center space-x-3.5 border border-dark-border">
+                <div class="w-10 h-10 rounded-lg bg-dark-panel border border-dark-border flex items-center justify-center text-blue-500">
+                    <i class="fa-solid fa-shield text-sm"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-200">Garantia Oficial</h4>
+                    <p class="text-[11px] text-slate-500 font-mono">24 meses de cobertura</p>
+                </div>
+            </div>
+
+            <div class="clean-glass p-4 rounded-xl flex items-center space-x-3.5 border border-dark-border">
+                <div class="w-10 h-10 rounded-lg bg-dark-panel border border-dark-border flex items-center justify-center text-blue-500">
+                    <i class="fa-solid fa-pix text-sm"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-200">Desconto PIX</h4>
+                    <p class="text-[11px] text-slate-500 font-mono">5% de desconto à vista</p>
+                </div>
+            </div>
+
+            <div class="clean-glass p-4 rounded-xl flex items-center space-x-3.5 border border-dark-border">
+                <div class="w-10 h-10 rounded-lg bg-dark-panel border border-dark-border flex items-center justify-center text-blue-500">
+                    <i class="fa-solid fa-layer-group text-sm"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-200">Janela Flutuante</h4>
+                    <p class="text-[11px] text-slate-500 font-mono">Carrinho interativo</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Section Heading -->
+        <div id="productsSection" class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 border-b border-dark-border pb-4">
+            <div>
+                <h2 class="font-tech text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
+                    DISPOSITIVOS
+                </h2>
+                <p class="text-xs font-mono text-slate-500 mt-0.5">Selecione um item para ver as especificações</p>
+            </div>
+            <div>
+                <span id="productCount" class="text-xs font-mono px-3 py-1 rounded-lg bg-dark-panel border border-dark-border text-slate-400">
+                    Carregando...
+                </span>
+            </div>
+        </div>
+
+        <!-- Dynamic E-Commerce Product Grid -->
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Injected via JavaScript -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 border-t border-dark-border bg-dark-bg pt-12 pb-10 text-slate-500 text-xs font-mono relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+                <div>
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fa-solid fa-layer-group text-blue-500 text-lg"></i>
+                        <span class="font-tech text-lg font-bold text-slate-200">TECNO<span class="text-blue-500">WORLD</span></span>
+                    </div>
+                    <p class="text-slate-500 leading-relaxed mb-4">
+                        Loja de tecnologia com foco em design minimalista, alta durabilidade e performance.
+                    </p>
+                    <div class="flex space-x-2 text-base">
+                        <a href="#" class="w-8 h-8 rounded-lg bg-dark-panel border border-dark-border flex items-center justify-center text-slate-400 hover:text-slate-200 transition"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-dark-panel border border-dark-border flex items-center justify-center text-slate-400 hover:text-slate-200 transition"><i class="fa-brands fa-tiktok"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-dark-panel border border-dark-border flex items-center justify-center text-slate-400 hover:text-slate-200 transition"><i class="fa-brands fa-whatsapp"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-slate-300 text-xs mb-3 uppercase tracking-wider">Categorias</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" onclick="filterCategory('smartphones')" class="hover:text-slate-300 transition">Celulares</a></li>
+                        <li><a href="#" onclick="filterCategory('smartwatches')" class="hover:text-slate-300 transition">Relógios</a></li>
+                        <li><a href="#" onclick="filterCategory('cameras')" class="hover:text-slate-300 transition">Câmeras & Drones</a></li>
+                        <li><a href="#" onclick="filterCategory('audio')" class="hover:text-slate-300 transition">Áudio & Óculos VR</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-slate-300 text-xs mb-3 uppercase tracking-wider">Atendimento</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-slate-300 transition">Rastreamento de Pedido</a></li>
+                        <li><a href="#" class="hover:text-slate-300 transition">Termos de Garantia</a></li>
+                        <li><a href="#" class="hover:text-slate-300 transition">Política de Trocas</a></li>
+                        <li><a href="#" class="hover:text-slate-300 transition">Suporte via WhatsApp</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-slate-300 text-xs mb-3 uppercase tracking-wider">Newsletter</h3>
+                    <p class="text-slate-500 mb-3">Receba novidades e ofertas exclusivas.</p>
+                    <form onsubmit="subscribeNewsletter(event)" class="space-y-2">
+                        <input type="email" required placeholder="Seu e-mail" class="w-full bg-dark-panel border border-dark-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500/50">
+                        <button type="submit" class="w-full py-2 bg-blue-600 text-white font-medium text-xs rounded-xl hover:bg-blue-500 transition">INSCREVER</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="border-t border-dark-border pt-6 flex flex-col md:flex-row justify-between items-center text-slate-600">
+                <p>&copy; 2026 TECNOWORLD. Todos os direitos reservados. Minimal Dark Theme.</p>
+                <div class="flex items-center space-x-3 mt-4 md:mt-0 text-base">
+                    <i class="fa-brands fa-cc-visa"></i>
+                    <i class="fa-brands fa-cc-mastercard"></i>
+                    <i class="fa-solid fa-pix"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Draggable macOS Cart Window -->
+    <div id="cartWindow" class="hud-draggable-window clean-glass rounded-2xl w-full max-w-md hidden shadow-2xl border border-dark-border overflow-hidden" style="top: 90px; right: 20px; z-index: 90;">
+        
+        <!-- Window Title Header Bar (Drag Handler) -->
+        <div id="cartDragHeader" class="p-3.5 border-b border-dark-border flex items-center justify-between bg-dark-panel cursor-grab active:cursor-grabbing">
+            <div class="flex items-center space-x-2">
+                <span class="mac-dot bg-zinc-600 cursor-pointer" onclick="toggleCartWindow()" title="Fechar"></span>
+                <span class="mac-dot bg-zinc-600 cursor-pointer" onclick="minimizeWindow('cartWindow')" title="Minimizar"></span>
+                <span class="text-xs font-mono font-medium text-slate-300 ml-2">cart_session.app</span>
+            </div>
+            <button onclick="toggleCartWindow()" class="text-slate-500 hover:text-slate-200 transition">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+        </div>
+
+        <!-- Free Shipping Progress Tracker -->
+        <div class="bg-dark-bg p-3.5 border-b border-dark-border px-5 font-mono">
+            <div class="flex justify-between text-xs mb-1.5">
+                <span id="freeShippingLabel" class="text-slate-400">Frete Grátis</span>
+                <span id="freeShippingValue" class="text-slate-200 font-bold">R$ 0,00 / R$ 299,00</span>
+            </div>
+            <div class="w-full h-1.5 bg-dark-panel rounded-full overflow-hidden border border-dark-border">
+                <div id="freeShippingBar" class="h-full bg-blue-500 w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <!-- Cart Items Container -->
+        <div id="cartItemsContainer" class="max-h-80 overflow-y-auto p-4 space-y-2.5">
+            <!-- Injected dynamically via JS -->
+        </div>
+
+        <!-- Footer Summary & Checkout -->
+        <div class="p-4 border-t border-dark-border bg-dark-panel space-y-3">
+            <div class="space-y-1 text-xs font-mono">
+                <div class="flex justify-between text-slate-400">
+                    <span>Subtotal:</span>
+                    <span id="cartSubtotal" class="font-bold text-slate-200">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                    <span>Desconto:</span>
+                    <span id="cartDiscount" class="text-blue-400 font-bold">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between text-sm font-bold text-slate-100 pt-2 border-t border-dark-border">
+                    <span>TOTAL:</span>
+                    <span id="cartTotal" class="text-blue-500">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="flex space-x-2">
+                <input type="text" id="couponInput" placeholder="CUPOM (Ex: TECNOWORLD10)" class="flex-1 bg-dark-bg border border-dark-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500/50 font-mono uppercase">
+                <button onclick="applyCoupon()" class="px-3.5 py-2 bg-dark-card border border-dark-border text-slate-300 rounded-xl text-xs font-mono hover:border-slate-500 transition">APLICAR</button>
+            </div>
+
+            <button onclick="checkoutWhatsApp()" class="w-full py-3 rounded-xl bg-blue-600 text-white font-medium text-xs tracking-wider flex items-center justify-center space-x-2 hover:bg-blue-500 transition">
+                <i class="fa-brands fa-whatsapp text-sm"></i>
+                <span>FINALIZAR VIA WHATSAPP</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Minimal Product Detail Modal -->
+    <div id="productModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+        <div class="min-h-screen px-4 text-center flex items-center justify-center">
+            <div class="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity" onclick="closeProductModal()"></div>
+
+            <div id="modalContent" class="inline-block w-full max-w-2xl p-6 my-8 text-left align-middle transition-all transform clean-glass border border-dark-border rounded-2xl relative shadow-2xl z-10">
+
+                <div class="flex items-center justify-between border-b border-dark-border pb-3 mb-5 font-mono text-xs">
+                    <div class="flex items-center space-x-2">
+                        <span class="mac-dot bg-zinc-600 cursor-pointer" onclick="closeProductModal()"></span>
+                        <span class="text-slate-400 font-medium">product_details.app</span>
+                    </div>
+                    <button onclick="closeProductModal()" class="text-slate-500 hover:text-slate-200 text-base transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div id="modalBody">
+                    <!-- Dynamic modal content injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promo Coupon Modal -->
+    <div id="promoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="closePromoModal()"></div>
+        <div class="clean-glass border border-dark-border p-6 sm:p-8 rounded-2xl max-w-sm w-full relative z-10 text-center shadow-2xl">
+
+            <div class="w-12 h-12 rounded-xl bg-dark-panel border border-dark-border mx-auto flex items-center justify-center text-blue-500 text-xl mb-3">
+                <i class="fa-solid fa-tag"></i>
+            </div>
+            <h3 class="font-tech text-xl font-bold text-slate-100 mb-1">CUPOM DE BOAS-VINDAS</h3>
+            <p class="text-xs text-slate-400 mb-4">Aproveite <strong class="text-slate-200">10% OFF</strong> na sua compra com o cupom:</p>
+            
+            <div class="bg-dark-bg p-3 rounded-xl border border-dashed border-dark-border flex items-center justify-between mb-5">
+                <span class="font-mono font-bold text-blue-400 text-sm tracking-wider">TECNOWORLD10</span>
+                <button onclick="copyCouponCode()" class="text-xs bg-blue-600/20 border border-blue-500/40 text-blue-400 px-2.5 py-1 rounded-lg hover:bg-blue-600 hover:text-white transition font-mono">
+                    COPIAR
+                </button>
+            </div>
+
+            <button onclick="closePromoModal()" class="w-full py-2.5 rounded-xl bg-blue-600 text-white font-medium text-xs tracking-wide">
+                APROVEITAR DESCONTO
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <script>
+        // Catalog Products Database
+        const PRODUCTS = [
+            {
+                id: 'p1',
+                name: 'Relógio Stark HUD Arc Pro',
+                category: 'smartwatches',
+                price: 599.90,
+                oldPrice: 899.90,
+                rating: 5.0,
+                badge: 'MATTE TITANIUM',
+                image: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=600&q=80',
+                specs: ['Bateria 21 Dias', 'Display AMOLED 120Hz', 'Sensor Biométrico Laser', 'Caixa em Titânio Grau 5'],
+                desc: 'Smartwatch com acabamento fosco e interface minimalista. Sensores de alta precisão em corpo ultraleve de titânio.'
+            },
+            {
+                id: 'p2',
+                name: 'Smartphone TECNO X Fold Stealth',
+                category: 'smartphones',
+                price: 4899.00,
+                oldPrice: 5999.00,
+                rating: 4.9,
+                badge: 'BLACK EDITION',
+                image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80',
+                specs: ['Tela Dobrável OLED 144Hz', 'Processador Octa-Core 3nm', 'Câmera 200MP OIS', 'Carga Ultra Fast 120W'],
+                desc: 'Smartphone dobrável de alta performance com revestimento em cerâmica escura e tela sem vincos visíveis.'
+            },
+            {
+                id: 'p3',
+                name: 'Câmera HoloCam Pro 8K',
+                category: 'cameras',
+                price: 3299.00,
+                oldPrice: 4199.00,
+                rating: 4.8,
+                badge: 'CINEMA GRADE',
+                image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80',
+                specs: ['Sensor Full Frame 8K', 'Estabilização MagLev', 'Gravação RAW 120fps', 'Corpo Selado em Magnésio'],
+                desc: 'Câmera profissional em corpo cinza grafite com estabilização magnética interna e gravação em altíssima fidelidade.'
+            },
+            {
+                id: 'p4',
+                name: 'Fone Neural Link Bass Pro',
+                category: 'audio',
+                price: 449.90,
+                oldPrice: 629.90,
+                rating: 4.9,
+                badge: 'NOISE CANCELING',
+                badgeColor: 'from-stark-cyan to-stark-purple',
+                image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+                specs: ['Áudio Espacial HD', 'Cancelamento Ativo 50dB', '50 Horas Autonomia', 'Drivers 14mm Grafeno'],
+                desc: 'Headphone sem fio com cancelamento ativo de ruído adaptativo e acabamento em alumínio anodizado escuro.'
+            },
+            {
+                id: 'p5',
+                name: 'Óculos VR/AR Stark Vision',
+                category: 'audio',
+                price: 2499.00,
+                oldPrice: 3199.00,
+                rating: 5.0,
+                badge: '4K DUAL OLED',
+                image: 'https://images.unsplash.com/photo-1593508512255-86ab42a8e620?auto=format&fit=crop&w=600&q=80',
+                specs: ['Telas 4K Duplas', 'Rastreamento Ocular', 'Peso Ultraleve 90g', 'Conexão Sem Fio 6GHz'],
+                desc: 'Óculos de realidade misturada discretos para produtividade e entretenimento de alta resolução.'
+            },
+            {
+                id: 'p6',
+                name: 'Drone AeroX Stealth 4K',
+                category: 'cameras',
+                price: 3799.00,
+                oldPrice: 4599.00,
+                rating: 4.8,
+                badge: 'CARBON FIBER',
+                image: 'https://images.unsplash.com/photo-1527977966376-1c8408f9f108?auto=format&fit=crop&w=600&q=80',
+                specs: ['Alcance 15 Km', '42 Min de Voo', 'Sensores Anticolisão', 'Gimbal de Titânio 3 Eixos'],
+                desc: 'Drone dobrável construído em fibra de carbono fosca com motores silenciosos de última geração.'
+            }
+        ];
+
+        // Application Global State
+        let cart = [];
+        let activeCategory = 'all';
+        let discountRate = 0;
+        let appliedCouponCode = '';
+        let audioEnabled = false;
+        let audioCtx = null;
+        let arcPulseActive = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            updateCartUI();
+            startLiveClock();
+            initArcCanvas();
+            makeWindowDraggable(document.getElementById('cartWindow'), document.getElementById('cartDragHeader'));
+
+            // Keyboard shortcut ⌘K or Ctrl+K for search
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                }
+            });
+
+            // Show Promo Coupon Modal after delay
+            setTimeout(() => {
+                if(!localStorage.getItem('tecnoworld_promo_dismissed')) {
+                    document.getElementById('promoModal').classList.remove('hidden');
+                }
+            }, 2500);
+        });
+
+        // Web Audio Synthesizer - Minimal subtle click
+        function playHudBeep(freq = 600, type = 'sine', duration = 0.05) {
+            if (!audioEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.warn('Audio synthesis info:', e);
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audioIcon');
+            const text = document.getElementById('audioText');
+            if (audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-blue-500';
+                text.className = 'text-blue-400 font-medium';
+                text.innerText = 'AUDIO: ON';
+                playHudBeep(800, 'sine', 0.1);
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                text.className = 'text-slate-400';
+                text.innerText = 'AUDIO: OFF';
+            }
+        }
+
+        // Live UTC Clock
+        function startLiveClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('liveTime').innerText = now.toUTCString().split(' ')[4] + ' UTC';
+            }, 1000);
+        }
+
+        // Sleek Minimal Canvas Animation
+        function initArcCanvas() {
+            const canvas = document.getElementById('arcCanvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let angle = 0;
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+
+                // Outer Ring
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle);
+                
+                ctx.strokeStyle = arcPulseActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(0, 0, 95, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Minimal ticks
+                for (let i = 0; i < 8; i++) {
+                    ctx.rotate(Math.PI / 4);
+                    ctx.fillStyle = arcPulseActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.2)';
+                    ctx.fillRect(82, -1.5, 8, 3);
+                }
+                ctx.restore();
+
+                // Inner Ring
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(-angle * 1.2);
+
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(0, 0, 55, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                // Center Dot Core
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.fillStyle = arcPulseActive ? '#3b82f6' : 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                angle += 0.008;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function triggerArcPulse() {
+            arcPulseActive = true;
+            playHudBeep(900, 'sine', 0.15);
+            setTimeout(() => { arcPulseActive = false; }, 600);
+        }
+
+        function scrollToProducts() {
+            playHudBeep(500);
+            document.getElementById('productsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Render Product Catalog Cards
+        function renderProducts(itemsToRender = null) {
+            const grid = document.getElementById('productGrid');
+            const list = itemsToRender || getFilteredProducts();
+            
+            document.getElementById('productCount').innerText = `${list.length} DISPOSITIVOS`;
+
+            if(list.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-16 clean-glass rounded-2xl border border-dark-border">
+                        <i class="fa-solid fa-box-open text-4xl text-slate-600 mb-3"></i>
+                        <h3 class="font-tech text-lg text-slate-200 font-bold">Nenhum produto encontrado</h3>
+                        <p class="text-xs font-mono text-slate-500 mt-1">Ajuste os filtros de busca.</p>
+                        <button onclick="filterCategory('all')" class="mt-4 px-4 py-2 bg-dark-panel text-slate-300 font-mono text-xs rounded-xl border border-dark-border hover:border-slate-500">Limpar Filtros</button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = list.map(product => `
+                <div class="product-card clean-glass rounded-2xl overflow-hidden flex flex-col justify-between group relative border border-dark-border hover:border-dark-hoverBorder transition duration-300"
+                     onmouseenter="playHudBeep(700, 'sine', 0.03)">
+                    
+                    <div>
+                        <!-- Image Container with Badge -->
+                        <div class="relative overflow-hidden h-52 bg-dark-bg">
+                            <span class="absolute top-3 left-3 z-20 text-[9px] font-mono font-bold px-2.5 py-1 rounded-md text-slate-300 bg-dark-panel/90 border border-dark-border">
+                                ${product.badge}
+                            </span>
+                            <img src="${product.image}" alt="${product.name}" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85 group-hover:opacity-100">
+                            
+                            <!-- Quick Overlay -->
+                            <div class="mac-hover-card absolute inset-3 clean-glass rounded-xl p-4 flex flex-col justify-between z-10 border border-dark-border bg-dark-panel/95">
+                                <div>
+                                    <div class="flex items-center justify-between border-b border-dark-border pb-2 mb-2">
+                                        <span class="font-mono text-xs text-blue-400">ESPECIFICAÇÕES</span>
+                                    </div>
+                                    <ul class="space-y-1.5 text-[11px] font-mono text-slate-300">
+                                        ${product.specs.map(s => `<li class="flex items-center"><i class="fa-solid fa-chevron-right text-blue-500 text-[8px] mr-1.5"></i>${s}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <button onclick="openProductModal('${product.id}')" class="w-full py-1.5 rounded-lg bg-dark-bg border border-dark-border text-slate-300 font-mono text-[10px] hover:border-blue-500/50 transition">
+                                    VER DETALHES COMPLETO
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card Info Content -->
+                        <div class="p-4 sm:p-5">
+                            <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-1">
+                                <span class="uppercase">${product.category}</span>
+                                <div class="flex items-center text-slate-400">
+                                    <i class="fa-solid fa-star text-[10px] mr-1 text-slate-500"></i>
+                                    <span class="font-bold text-xs">${product.rating}</span>
+                                </div>
+                            </div>
+
+                            <h3 class="font-tech font-bold text-base text-slate-100 group-hover:text-blue-400 transition line-clamp-1">
+                                ${product.name}
+                            </h3>
+
+                            <div class="mt-3 flex items-baseline space-x-2">
+                                <span class="text-xs text-slate-600 line-through font-mono">R$ ${product.oldPrice.toFixed(2)}</span>
+                                <span class="text-xl font-bold font-mono text-slate-100">R$ ${product.price.toFixed(2)}</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-slate-500 block mt-0.5">À vista no PIX com 5% OFF</span>
+                        </div>
+                    </div>
+
+                    <!-- Card Bottom Action Buttons -->
+                    <div class="px-4 sm:px-5 pb-5 pt-1 grid grid-cols-2 gap-2">
+                        <button onclick="openProductModal('${product.id}')" class="py-2 rounded-xl bg-dark-panel border border-dark-border text-slate-300 text-xs font-mono hover:border-slate-500 transition">
+                            DETALHES
+                        </button>
+                        <button onclick="addToCart('${product.id}')" class="py-2 rounded-xl bg-blue-600 text-white text-xs font-mono hover:bg-blue-500 transition">
+                            COMPRAR
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Category Filter
+        function filterCategory(category) {
+            activeCategory = category;
+            playHudBeep(800);
+            
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-400');
+            });
+
+            event.currentTarget.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+            event.currentTarget.classList.remove('text-slate-400');
+
+            renderProducts();
+        }
+
+        function getFilteredProducts() {
+            if(activeCategory === 'all') return PRODUCTS;
+            return PRODUCTS.filter(p => p.category === activeCategory);
+        }
+
+        // Realtime Search
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            filterByQuery(query);
+        }
+
+        function handleSearchMobile() {
+            const query = document.getElementById('mobileSearchInput').value.toLowerCase();
+            filterByQuery(query);
+        }
+
+        function filterByQuery(query) {
+            if(!query.trim()) {
+                renderProducts();
+                return;
+            }
+            const filtered = PRODUCTS.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                p.desc.toLowerCase().includes(query) ||
+                p.category.toLowerCase().includes(query)
+            );
+            renderProducts(filtered);
+        }
+
+        // Cart Operations
+        function addToCart(productId) {
+            const product = PRODUCTS.find(p => p.id === productId);
+            if(!product) return;
+
+            playHudBeep(1000, 'sine', 0.08);
+
+            const existingItem = cart.find(item => item.id === productId);
+            if(existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            updateCartUI();
+            showToast(`"${product.name}" adicionado ao carrinho.`);
+        }
+
+        function changeQuantity(productId, delta) {
+            playHudBeep(700, 'sine', 0.04);
+            const item = cart.find(i => i.id === productId);
+            if(!item) return;
+
+            item.quantity += delta;
+            if(item.quantity <= 0) {
+                cart = cart.filter(i => i.id !== productId);
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(productId) {
+            playHudBeep(400, 'sine', 0.08);
+            cart = cart.filter(i => i.id !== productId);
+            updateCartUI();
+            showToast('Item removido.', 'info');
+        }
+
+        function updateCartUI() {
+            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCount').innerText = totalCount;
+
+            const container = document.getElementById('cartItemsContainer');
+            if(cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-600 font-mono">
+                        <i class="fa-solid fa-bag-shopping text-3xl mb-2 text-slate-700"></i>
+                        <p class="text-xs text-slate-400">Seu carrinho está vazio</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="clean-glass p-2.5 rounded-xl flex items-center space-x-3 border border-dark-border bg-dark-panel">
+                        <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded-lg bg-dark-bg">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-medium text-xs text-slate-200 truncate">${item.name}</h4>
+                            <p class="text-xs font-mono text-blue-400 mt-0.5">R$ ${item.price.toFixed(2)}</p>
+                            <div class="flex items-center space-x-2 mt-1 font-mono">
+                                <button onclick="changeQuantity('${item.id}', -1)" class="w-4 h-4 rounded bg-dark-bg border border-dark-border flex items-center justify-center text-[10px] text-slate-300 hover:border-slate-500">-</button>
+                                <span class="text-xs text-slate-200 px-1">${item.quantity}</span>
+                                <button onclick="changeQuantity('${item.id}', 1)" class="w-4 h-4 rounded bg-dark-bg border border-dark-border flex items-center justify-center text-[10px] text-slate-300 hover:border-slate-500">+</button>
+                            </div>
+                        </div>
+                        <button onclick="removeFromCart('${item.id}')" class="text-slate-600 hover:text-slate-300 p-1 transition">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discountAmount = subtotal * discountRate;
+            const finalTotal = Math.max(0, subtotal - discountAmount);
+
+            document.getElementById('cartSubtotal').innerText = `R$ ${subtotal.toFixed(2)}`;
+            document.getElementById('cartDiscount').innerText = `- R$ ${discountAmount.toFixed(2)}`;
+            document.getElementById('cartTotal').innerText = `R$ ${finalTotal.toFixed(2)}`;
+
+            // Free Shipping Calculator Threshold
+            const shippingThreshold = 299.00;
+            const shippingProgress = Math.min(100, (subtotal / shippingThreshold) * 100);
+            document.getElementById('freeShippingBar').style.width = `${shippingProgress}%`;
+
+            if(subtotal >= shippingThreshold) {
+                document.getElementById('freeShippingLabel').innerText = 'Frete Grátis Liberado';
+                document.getElementById('freeShippingLabel').className = 'text-blue-400 font-bold';
+                document.getElementById('freeShippingValue').innerText = 'R$ 0,00';
+            } else {
+                const remaining = shippingThreshold - subtotal;
+                document.getElementById('freeShippingLabel').innerText = 'Faltam p/ Frete Grátis:';
+                document.getElementById('freeShippingLabel').className = 'text-slate-400';
+                document.getElementById('freeShippingValue').innerText = `R$ ${remaining.toFixed(2)}`;
+            }
+        }
+
+        function applyCoupon() {
+            const code = document.getElementById('couponInput').value.trim().toUpperCase();
+            if(code === 'TECNOWORLD10') {
+                playHudBeep(1200, 'sine', 0.1);
+                discountRate = 0.10;
+                appliedCouponCode = code;
+                updateCartUI();
+                showToast('Cupom TECNOWORLD10 aplicado!');
+            } else if(code === '') {
+                showToast('Digite um cupom.', 'error');
+            } else {
+                playHudBeep(300, 'sine', 0.1);
+                showToast('Cupom inválido.', 'error');
+            }
+        }
+
+        function toggleCartWindow() {
+            playHudBeep(600);
+            const win = document.getElementById('cartWindow');
+            win.classList.toggle('hidden');
+            if(!win.classList.contains('hidden')) {
+                win.classList.add('is-active');
+            }
+        }
+
+        function minimizeWindow(winId) {
+            playHudBeep(400);
+            document.getElementById(winId).classList.add('hidden');
+        }
+
+        function resetWindowPositions() {
+            playHudBeep(800);
+            const cartWin = document.getElementById('cartWindow');
+            cartWin.style.top = '90px';
+            cartWin.style.right = '20px';
+            cartWin.style.left = 'auto';
+            showToast('Janela restaurada.');
+        }
+
+        // Draggable Window Handler
+        function makeWindowDraggable(elmnt, header) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            if (header) {
+                header.onmousedown = dragMouseDown;
+                header.ontouchstart = dragTouchStart;
+            }
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                elmnt.classList.add('is-active');
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                elmnt.style.right = 'auto';
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+
+            function dragTouchStart(e) {
+                elmnt.classList.add('is-active');
+                const touch = e.touches[0];
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                document.ontouchend = closeTouchElement;
+                document.ontouchmove = elementTouchDrag;
+            }
+
+            function elementTouchDrag(e) {
+                const touch = e.touches[0];
+                pos1 = pos3 - touch.clientX;
+                pos2 = pos4 - touch.clientY;
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                elmnt.style.right = 'auto';
+            }
+
+            function closeTouchElement() {
+                document.ontouchend = null;
+                document.ontouchmove = null;
+            }
+        }
+
+        // Product Modal Quick View
+        function openProductModal(productId) {
+            playHudBeep(900);
+            const product = PRODUCTS.find(p => p.id === productId);
+            if(!product) return;
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div class="relative rounded-xl overflow-hidden bg-dark-bg h-60 border border-dark-border">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover">
+                        <span class="absolute top-3 left-3 text-[9px] font-mono font-bold px-2.5 py-1 rounded bg-dark-panel border border-dark-border text-slate-300">
+                            ${product.badge}
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="text-xs font-mono text-slate-500 uppercase">${product.category}</span>
+                        <h3 class="font-tech font-bold text-xl text-slate-100 mt-0.5 mb-2">${product.name}</h3>
+                        <p class="text-xs font-mono text-slate-400 leading-relaxed mb-4">${product.desc}</p>
+
+                        <div class="space-y-1.5 mb-5">
+                            <span class="text-xs font-mono text-slate-300 font-bold block">ESPECIFICAÇÕES:</span>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                ${product.specs.map(spec => `
+                                    <div class="text-[11px] font-mono bg-dark-bg p-2 rounded-lg border border-dark-border text-slate-300">
+                                        • ${spec}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="flex items-baseline space-x-2 mb-5 font-mono">
+                            <span class="text-2xl font-bold text-slate-100">R$ ${product.price.toFixed(2)}</span>
+                            <span class="text-xs text-slate-600 line-through">R$ ${product.oldPrice.toFixed(2)}</span>
+                        </div>
+
+                        <button onclick="addToCart('${product.id}'); closeProductModal();" class="w-full py-3 rounded-xl bg-blue-600 text-white font-mono text-xs hover:bg-blue-500 transition">
+                            ADICIONAR AO CARRINHO
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+        }
+
+        function closePromoModal() {
+            document.getElementById('promoModal').classList.add('hidden');
+            localStorage.setItem('tecnoworld_promo_dismissed', 'true');
+        }
+
+        function copyCouponCode() {
+            playHudBeep(1000);
+            document.getElementById('couponInput').value = 'TECNOWORLD10';
+            showToast('Cupom copiado e colado!');
+        }
+
+        // WhatsApp Checkout
+        function checkoutWhatsApp() {
+            if(cart.length === 0) {
+                playHudBeep(300, 'sine', 0.1);
+                showToast('Carrinho vazio.', 'error');
+                return;
+            }
+
+            playHudBeep(1100, 'sine', 0.15);
+            const phone = '5511999999999';
+            let message = '*NOVO PEDIDO - TECNOWORLD*\n\n';
+            message += 'Gostaria de finalizar os seguintes itens:\n\n';
+
+            cart.forEach(item => {
+                message += `• *${item.name}* (x${item.quantity}) - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+            });
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discountAmount = subtotal * discountRate;
+            const total = subtotal - discountAmount;
+
+            if(appliedCouponCode) {
+                message += `\n*Cupom Aplicado:* ${appliedCouponCode} (-R$ ${discountAmount.toFixed(2)})`;
+            }
+
+            message += `\n*TOTAL:* R$ ${total.toFixed(2)}`;
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+        }
+
+        function subscribeNewsletter(e) {
+            e.preventDefault();
+            playHudBeep(900);
+            showToast('Inscrição confirmada!');
+            e.target.reset();
+        }
+
+        // Toast Feedback
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const borderStyle = type === 'error' ? 'border-red-900 bg-red-950/90 text-red-200' : 'border-dark-border bg-dark-panel text-slate-200';
+            const icon = type === 'error' ? 'fa-circle-exclamation text-red-400' : 'fa-check text-blue-500';
+
+            toast.className = `toast-animate pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border ${borderStyle} shadow-xl text-xs font-mono max-w-sm`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.2s ease';
+                setTimeout(() => toast.remove(), 200);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
